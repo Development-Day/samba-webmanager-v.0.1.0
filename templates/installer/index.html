@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAMBA::INSTALLER</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        /* ============================================================
+           Samba Web Manager - Installer (Cyberpunk Theme)
+           ============================================================ */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            border-radius: 0 !important;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            background-color: #0a0a0a;
+            background-image:
+                linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            color: #00ffff;
+            font-family: "Consolas", "Courier New", monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        a {
+            color: #00ffff;
+            text-decoration: none;
+            transition: color 0.2s, text-shadow 0.2s;
+        }
+        a:hover {
+            color: #66ffff;
+            text-shadow: 0 0 10px #00ffff;
+        }
+
+        .installer-wrap {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .installer-card {
+            background-color: #000a0a;
+            border: 2px solid #00ffff;
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.15),
+                        inset 0 0 60px rgba(0, 255, 255, 0.02);
+            overflow: hidden;
+        }
+
+        .header {
+            background-color: #001a1a;
+            border-bottom: 2px solid #00ffff;
+            padding: 25px 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header::before {
+            content: ">>> SYSTEM INSTALL <<<";
+            position: absolute;
+            top: 8px;
+            left: 15px;
+            font-size: 9px;
+            letter-spacing: 3px;
+            color: #006666;
+        }
+
+        .header::after {
+            content: "v1.0.0";
+            position: absolute;
+            top: 8px;
+            right: 15px;
+            font-size: 9px;
+            letter-spacing: 2px;
+            color: #006666;
+        }
+
+        .header h1 {
+            color: #66ffff;
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 6px;
+            text-shadow: 0 0 15px #00ffff, 0 0 30px #00ffff;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #00ffff;
+            font-size: 11px;
+            letter-spacing: 3px;
+            margin: 0;
+            opacity: 0.8;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            padding: 18px 30px;
+            background-color: #000a0a;
+            border-bottom: 1px solid #003333;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0.4;
+            transition: all 0.3s;
+            font-size: 11px;
+            letter-spacing: 1px;
+            color: #006666;
+        }
+
+        .step.active {
+            opacity: 1;
+            color: #00ffff;
+        }
+
+        .step.done {
+            opacity: 1;
+            color: #00ff66;
+        }
+
+        .step .number {
+            width: 28px;
+            height: 28px;
+            border: 2px solid #006666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+            color: #006666;
+            background-color: #000a0a;
+            transition: all 0.3s;
+        }
+
+        .step.active .number {
+            border-color: #00ffff;
+            color: #00ffff;
+            background-color: #001a1a;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+            text-shadow: 0 0 8px #00ffff;
+        }
+
+        .step.done .number {
+            border-color: #00ff66;
+            color: #00ff66;
+            background-color: #001a00;
+            box-shadow: 0 0 10px rgba(0, 255, 100, 0.3);
+        }
+
+        .body-content {
+            padding: 30px;
+            background-color: #0a0a0a;
+        }
+
+        h3 {
+            color: #66ffff;
+            font-size: 16px;
+            font-weight: bold;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px #00ffff;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        h3 i {
+            margin-right: 8px;
+        }
+
+        .text-muted {
+            color: #006666;
+            font-size: 11px;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+        }
+
+        .check-list {
+            border: 2px solid #00ffff;
+            background-color: #000a0a;
+            margin-bottom: 20px;
+        }
+
+        .check-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.15);
+            font-size: 11px;
+            color: #00ffff;
+            transition: all 0.2s;
+        }
+
+        .check-item:last-child {
+            border-bottom: none;
+        }
+
+        .check-item:hover {
+            background-color: #001a1a;
+        }
+
+        .check-item.section {
+            background-color: #001a1a;
+            color: #66ffff;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-size: 10px;
+        }
+
+        .check-item .status-ok {
+            color: #00ff66;
+            text-shadow: 0 0 8px #00ff66;
+        }
+
+        .check-item .status-err {
+            color: #ff0033;
+            text-shadow: 0 0 8px #ff0033;
+        }
+
+        .check-item .status-warn {
+            color: #ffaa00;
+            text-shadow: 0 0 8px #ffaa00;
+        }
+
+        .check-item .version {
+            color: #006666;
+            font-size: 10px;
+            margin-left: 8px;
+        }
+
+        .component-card {
+            border: 2px solid #003333;
+            background-color: #000a0a;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .component-card:hover {
+            border-color: #00ffff;
+            background-color: #001a1a;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.15);
+        }
+
+        .component-card.selected {
+            border-color: #00ffff;
+            background-color: #001a1a;
+            box-shadow: inset 0 0 20px rgba(0, 255, 255, 0.05),
+                        0 0 15px rgba(0, 255, 255, 0.2);
+        }
+
+        .component-card.selected::before {
+            content: "[✓]";
+            color: #00ffff;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px #00ffff;
+        }
+
+        .component-card:not(.selected)::before {
+            content: "[ ]";
+            color: #006666;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .component-card.installed {
+            border-color: #00ff66;
+            background-color: #001a00;
+            cursor: not-allowed;
+            opacity: 0.85;
+        }
+
+        .component-card.installed::before {
+            content: "[✓]";
+            color: #00ff66;
+            text-shadow: 0 0 8px #00ff66;
+        }
+
+        .component-card .icon {
+            font-size: 1.5rem;
+            color: #66ffff;
+            text-shadow: 0 0 10px #00ffff;
+            flex-shrink: 0;
+        }
+
+        .component-card.installed .icon {
+            color: #00ff66;
+            text-shadow: 0 0 10px #00ff66;
+        }
+
+        .component-card .info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .component-card .info strong {
+            color: #66ffff;
+            font-size: 13px;
+            letter-spacing: 1px;
+            text-shadow: 0 0 8px #00ffff;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .component-card.installed .info strong {
+            color: #00ff66;
+            text-shadow: 0 0 8px #00ff66;
+        }
+
+        .component-card .info small {
+            color: #006666;
+            font-size: 10px;
+            letter-spacing: 1px;
+        }
+
+        .component-card .badges {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 5px;
+            flex-shrink: 0;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            font-size: 9px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            border: 1px solid #00ffff;
+            background-color: #001a1a;
+            color: #00ffff;
+            text-shadow: 0 0 5px #00ffff;
+            white-space: nowrap;
+        }
+
+        .badge-success {
+            border-color: #00ff66;
+            color: #00ff66;
+            background-color: #001a00;
+            text-shadow: 0 0 5px #00ff66;
+        }
+
+        .badge-warning {
+            border-color: #ffaa00;
+            color: #ffaa00;
+            background-color: #1a1000;
+            text-shadow: 0 0 5px #ffaa00;
+        }
+
+        label {
+            display: block;
+            color: #66ffff;
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+            text-shadow: 0 0 8px rgba(0, 255, 255, 0.5);
+            text-transform: uppercase;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="number"] {
+            width: 100%;
+            background-color: #000000;
+            color: #00ffff;
+            border: 2px solid #00ffff;
+            padding: 10px 12px;
+            font-family: "Consolas", "Courier New", monospace;
+            font-size: 12px;
+            font-weight: bold;
+            outline: none;
+            transition: all 0.2s;
+            letter-spacing: 1px;
+        }
+
+        input:focus {
+            border-color: #66ffff;
+            background-color: #000a0a;
+            box-shadow: inset 0 0 30px rgba(0, 255, 255, 0.08),
+                        0 0 15px rgba(0, 255, 255, 0.2);
+        }
+
+        input::placeholder {
+            color: #006666;
+            font-weight: normal;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-check {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            padding: 10px 12px;
+            border: 1px solid #003333;
+            background-color: #000a0a;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .form-check:hover {
+            border-color: #00ffff;
+            background-color: #001a1a;
+        }
+
+        .form-check input[type="checkbox"] {
+            margin-right: 10px;
+            margin-top: 2px;
+            accent-color: #00ffff;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .form-check-label {
+            color: #00ffff;
+            font-size: 11px;
+            cursor: pointer;
+            margin: 0;
+            letter-spacing: 1px;
+        }
+
+        .reinstall-block {
+            display: none;
+            border: 2px solid #ffaa00;
+            background-color: #1a1000;
+            padding: 15px;
+            margin-bottom: 18px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .reinstall-block.active {
+            display: block;
+        }
+
+        .reinstall-block .form-check-label {
+            color: #ffaa00;
+        }
+
+        .reinstall-block .form-check-label strong {
+            text-shadow: 0 0 10px #ffaa00;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .reinstall-block small {
+            color: #ffcc66;
+            font-size: 10px;
+            display: block;
+            margin-top: 5px;
+        }
+
+        .reinstall-block code {
+            color: #00ffff;
+            background-color: #000a0a;
+            padding: 1px 4px;
+            border: 1px solid #003333;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: #001a1a;
+            color: #00ffff;
+            border: 2px solid #00ffff;
+            padding: 10px 20px;
+            font-family: "Consolas", "Courier New", monospace;
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-shadow: 0 0 8px #00ffff;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background-color: #003333;
+            border-color: #66ffff;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+            text-shadow: 0 0 12px #00ffff;
+            color: #66ffff;
+        }
+
+        .btn:active {
+            background-color: #004444;
+        }
+
+        .btn:disabled {
+            background-color: #001a1a;
+            color: #006666;
+            border-color: #006666;
+            cursor: not-allowed;
+            text-shadow: none;
+            box-shadow: none;
+        }
+
+        .btn-success {
+            background-color: #001a00;
+            border-color: #00ff66;
+            color: #00ff66;
+            text-shadow: 0 0 8px #00ff66;
+        }
+
+        .btn-success:hover {
+            background-color: #003300;
+            border-color: #66ff99;
+            color: #66ff99;
+            box-shadow: 0 0 20px rgba(0, 255, 100, 0.3);
+            text-shadow: 0 0 12px #00ff66;
+        }
+
+        .btn-secondary {
+            background-color: #0a0a0a;
+            border-color: #006666;
+            color: #006666;
+            text-shadow: none;
+        }
+
+        .btn-secondary:hover {
+            background-color: #001a1a;
+            border-color: #00ffff;
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .progress {
+            background-color: #000a0a;
+            border: 2px solid #00ffff;
+            height: 24px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg,
+                #004444 0%, #00ffff 50%, #004444 100%);
+            color: #000000;
+            font-size: 11px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: width 0.6s ease;
+            text-shadow: none;
+            letter-spacing: 2px;
+        }
+
+        .log-output {
+            background-color: #000000;
+            color: #00ffff;
+            border: 2px solid #00ffff;
+            padding: 15px;
+            font-family: "Consolas", "Courier New", monospace;
+            font-size: 11px;
+            line-height: 1.6;
+            max-height: 350px;
+            overflow: auto;
+            text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+        }
+
+        .log-output div {
+            margin-bottom: 2px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .log-output .error   { color: #ff0033; text-shadow: 0 0 8px #ff0033; }
+        .log-output .success { color: #00ff66; text-shadow: 0 0 8px #00ff66; }
+        .log-output .info    { color: #66ffff; text-shadow: 0 0 8px #66ffff; }
+        .log-output .skip    { color: #ffaa00; text-shadow: 0 0 8px #ffaa00; }
+
+        .final-screen {
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .final-icon {
+            font-size: 4rem;
+            color: #00ff66;
+            text-shadow: 0 0 30px #00ff66, 0 0 60px #00ff66;
+            display: block;
+            margin-bottom: 20px;
+        }
+
+        .final-screen h2 {
+            color: #66ffff;
+            font-size: 20px;
+            letter-spacing: 4px;
+            text-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .final-screen p {
+            color: #00ffff;
+            font-size: 11px;
+            letter-spacing: 2px;
+            margin-bottom: 25px;
+        }
+
+        .credentials {
+            border: 2px solid #00ffff;
+            background-color: #001a1a;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 500px;
+            text-align: left;
+        }
+
+        .credentials h4 {
+            color: #66ffff;
+            font-size: 12px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px #00ffff;
+            border-bottom: 1px solid #003333;
+            padding-bottom: 8px;
+        }
+
+        .credentials .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+            font-size: 11px;
+        }
+
+        .credentials .row:last-child {
+            border-bottom: none;
+        }
+
+        .credentials .label {
+            color: #006666;
+            letter-spacing: 1px;
+        }
+
+        .credentials .value {
+            color: #00ffff;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-shadow: 0 0 5px #00ffff;
+            word-break: break-all;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50%      { opacity: 0.5; }
+        }
+
+        .pulsing {
+            animation: pulse 1.5s infinite;
+        }
+
+        .step-content {
+            animation: fadeIn 0.3s ease;
+        }
+
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+        ::-webkit-scrollbar-track {
+            background-color: #000a0a;
+            border: 1px solid #003333;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #00ffff;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: #66ffff;
+            box-shadow: 0 0 10px #00ffff;
+        }
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #00ffff #000a0a;
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 10px; font-size: 11px; }
+            .body-content { padding: 20px 15px; }
+            .step-indicator { padding: 15px; flex-wrap: wrap; gap: 10px; }
+            .step { font-size: 10px; }
+            .step .number { width: 24px; height: 24px; font-size: 11px; }
+            .header h1 { font-size: 16px; letter-spacing: 3px; }
+            .header::before, .header::after { display: none; }
+            .btn-group { flex-direction: column; }
+            .btn { width: 100%; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="installer-wrap">
+        <div class="installer-card">
+            <div class="header">
+                <h1><i class="bi bi-server"></i> SAMBA::MANAGER</h1>
+                <p>INSTALLER v1.0</p>
+            </div>
+
+            <div class="step-indicator" id="stepIndicator">
+                <div class="step active" data-step="1">
+                    <span class="number">1</span>
+                    <span>CHECK</span>
+                </div>
+                <div class="step" data-step="2">
+                    <span class="number">2</span>
+                    <span>COMPONENTS</span>
+                </div>
+                <div class="step" data-step="3">
+                    <span class="number">3</span>
+                    <span>CONFIG</span>
+                </div>
+                <div class="step" data-step="4">
+                    <span class="number">4</span>
+                    <span>INSTALL</span>
+                </div>
+                <div class="step" data-step="5">
+                    <span class="number">5</span>
+                    <span>DONE</span>
+                </div>
+            </div>
+
+            <div class="body-content">
+                <!-- ШАГ 1: ПРОВЕРКА -->
+                <div id="step1" class="step-content active">
+                    <h3><i class="bi bi-check-circle"></i> Проверка системы</h3>
+                    <p class="text-muted">>>> Системные требования и пакеты <<<</p>
+                    <div id="systemCheck">
+                        <div class="check-list">
+                            <div class="check-item">
+                                <span>Инициализация...</span>
+                                <span class="status-warn">...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn" onclick="nextStep()" id="step1Btn" disabled>
+                            Продолжить <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ШАГ 2: КОМПОНЕНТЫ -->
+                <div id="step2" class="step-content" style="display:none;">
+                    <h3><i class="bi bi-puzzle"></i> Компоненты</h3>
+                    <p class="text-muted">>>> Выберите, что установить <<<</p>
+
+                    <div class="component-card selected" data-component="samba"
+                         onclick="toggleComponent(this, 'samba')">
+                        <span class="icon"><i class="bi bi-folder"></i></span>
+                        <div class="info">
+                            <strong>Samba сервер</strong>
+                            <small>Основной файловый сервер</small>
+                        </div>
+                        <div class="badges">
+                            <span class="badge badge-success">Рекомендуется</span>
+                        </div>
+                    </div>
+
+                    <div class="component-card selected" data-component="python"
+                         onclick="toggleComponent(this, 'python')">
+                        <span class="icon"><i class="bi bi-code-square"></i></span>
+                        <div class="info">
+                            <strong>Python 3.11+</strong>
+                            <small>Среда выполнения веб-интерфейса</small>
+                        </div>
+                        <div class="badges">
+                            <span class="badge badge-success">Рекомендуется</span>
+                        </div>
+                    </div>
+
+                    <div class="component-card selected" data-component="web"
+                         onclick="toggleComponent(this, 'web')">
+                        <span class="icon"><i class="bi bi-globe"></i></span>
+                        <div class="info">
+                            <strong>Веб-интерфейс</strong>
+                            <small>Панель управления Samba</small>
+                        </div>
+                        <div class="badges">
+                            <span class="badge badge-success">Рекомендуется</span>
+                        </div>
+                    </div>
+
+                    <div class="component-card" data-component="disks"
+                         onclick="toggleComponent(this, 'disks')">
+                        <span class="icon"><i class="bi bi-hdd"></i></span>
+                        <div class="info">
+                            <strong>Автомонтирование дисков</strong>
+                            <small>Обнаружение и монтирование USB/SATA</small>
+                        </div>
+                        <div class="badges"></div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-secondary" onclick="prevStep()">
+                            <i class="bi bi-arrow-left"></i> Назад
+                        </button>
+                        <button class="btn" onclick="nextStep()">
+                            Продолжить <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ШАГ 3: НАСТРОЙКА -->
+                <div id="step3" class="step-content" style="display:none;">
+                    <h3><i class="bi bi-gear"></i> Настройка</h3>
+                    <p class="text-muted">>>> Параметры администратора <<<</p>
+
+                    <form id="settingsForm" onsubmit="return false;">
+                        <div class="form-group">
+                            <label for="adminUsername">
+                                <i class="bi bi-person"></i> Администратор
+                            </label>
+                            <input type="text" id="adminUsername" value="admin"
+                                   autocomplete="off" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="adminPassword">
+                                <i class="bi bi-lock"></i> Пароль администратора
+                            </label>
+                            <input type="password" id="adminPassword"
+                                   autocomplete="new-password" required>
+                            <small style="color:#006666;">Минимум 6 символов</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="workgroup">
+                                <i class="bi bi-people"></i> Рабочая группа
+                            </label>
+                            <input type="text" id="workgroup" value="WORKGROUP">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="webPort">
+                                <i class="bi bi-hdd"></i> Порт веб-интерфейса
+                            </label>
+                            <input type="number" id="webPort" value="5000" min="1" max="65535">
+                        </div>
+
+                        <div class="form-check">
+                            <input type="checkbox" id="autoStart" checked>
+                            <label class="form-check-label" for="autoStart">
+                                Автоматически запускать при загрузке системы
+                            </label>
+                        </div>
+
+                        <!-- Блок переустановки -->
+                        <div class="reinstall-block" id="forceReinstallBlock">
+                            <div class="form-check" style="border:none; background:none; padding:0;">
+                                <input type="checkbox" id="forceReinstall"
+                                       onchange="onForceReinstallChange(this)">
+                                <label class="form-check-label" for="forceReinstall">
+                                    <strong>
+                                        <i class="bi bi-exclamation-triangle"></i>
+                                        Переустановить всё
+                                    </strong>
+                                    <small>
+                                        Перезапишет файлы приложения,
+                                        <code>.env</code>, systemd-юнит.
+                                        Пакеты через apt будут пропущены,
+                                        если уже установлены.
+                                    </small>
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="btn-group">
+                        <button class="btn btn-secondary" onclick="prevStep()">
+                            <i class="bi bi-arrow-left"></i> Назад
+                        </button>
+                        <button class="btn btn-success" onclick="startInstallation()">
+                            <i class="bi bi-play-fill"></i> Начать установку
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ШАГ 4: УСТАНОВКА -->
+                <div id="step4" class="step-content" style="display:none;">
+                    <h3><i class="bi bi-arrow-repeat pulsing"></i> Установка</h3>
+                    <p class="text-muted">>>> Пожалуйста, подождите <<<</p>
+
+                    <div class="progress">
+                        <div class="progress-bar" id="installProgress" style="width:0%;">0%</div>
+                    </div>
+
+                    <div class="log-output" id="installLog">
+                        <div class="info">⏳ Начинаем установку...</div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-secondary" onclick="prevStep()" id="installBackBtn">
+                            <i class="bi bi-arrow-left"></i> Назад
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ШАГ 5: ГОТОВО -->
+                <div id="step5" class="step-content" style="display:none;">
+                    <div class="final-screen">
+                        <i class="bi bi-check-circle-fill final-icon"></i>
+                        <h2>Установка завершена</h2>
+                        <p>>>> Система готова к работе <<<</p>
+
+                        <div class="credentials">
+                            <h4><i class="bi bi-info-circle"></i> Данные для входа</h4>
+                            <div class="row">
+                                <span class="label">АДРЕС:</span>
+                                <span class="value" id="finalUrl">http://localhost:5000</span>
+                            </div>
+                            <div class="row">
+                                <span class="label">ЛОГИН:</span>
+                                <span class="value" id="finalUsername">admin</span>
+                            </div>
+                            <div class="row">
+                                <span class="label">ПАРОЛЬ:</span>
+                                <span class="value" id="finalPassword">********</span>
+                            </div>
+                        </div>
+
+                        <div class="btn-group" style="justify-content:center;">
+                            <a href="/" class="btn btn-success">
+                                <i class="bi bi-box-arrow-in-right"></i>
+                                Перейти в панель
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedComponents = ['samba', 'python', 'web'];
+        let systemInfo = {};
+        let installedState = {};
+        let currentStep = 1;
+
+        // ============ ШАГИ ============
+
+        function showStep(step) {
+            document.querySelectorAll('.step-content').forEach(el => el.style.display = 'none');
+            document.getElementById('step' + step).style.display = 'block';
+
+            document.querySelectorAll('.step').forEach(el => {
+                el.classList.remove('active', 'done');
+                const num = parseInt(el.dataset.step);
+                if (num < step) el.classList.add('done');
+                if (num === step) el.classList.add('active');
+            });
+
+            currentStep = step;
+        }
+
+        function nextStep() {
+            if (currentStep === 1 && !document.getElementById('step1Btn').disabled) {
+                showStep(2);
+            } else if (currentStep === 2) {
+                showStep(3);
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) showStep(currentStep - 1);
+        }
+
+        // ============ ПРОВЕРКА СИСТЕМЫ ============
+
+        async function checkSystem() {
+            try {
+                const response = await fetch('/api/system-check');
+                systemInfo = await response.json();
+
+                const container = document.getElementById('systemCheck');
+                const checks = [
+                    { key: 'root',     label: 'Права root',         icon: 'shield' },
+                    { key: 'os',       label: 'Операционная система', icon: 'desktop' },
+                    { key: 'internet', label: 'Интернет',           icon: 'wifi' },
+                    { key: 'python',   label: 'Python',             icon: 'code-square' }
+                ];
+
+                let html = '<div class="check-list">';
+                let allOk = true;
+
+                checks.forEach(check => {
+                    const data = systemInfo[check.key] || {};
+                    const ok = !!data.status;
+                    if (!ok) allOk = false;
+                    const cls = ok ? 'status-ok' : 'status-err';
+                    const icon = ok ? '✓' : '✗';
+
+                    html += `
+                        <div class="check-item">
+                            <span>
+                                <i class="bi bi-${check.icon}"></i>
+                                ${check.label}
+                            </span>
+                            <span class="${cls}">
+                                ${icon} ${data.message || (ok ? 'OK' : 'Ошибка')}
+                            </span>
+                        </div>
+                    `;
+                });
+
+                html += `<div class="check-item section">
+                    <span><i class="bi bi-box"></i> Пакеты и сервисы</span>
+                    <span></span>
+                </div>`;
+
+                const detailed = systemInfo.packages_detailed || {};
+
+                for (const [pkg, data] of Object.entries(detailed)) {
+                    let installed = false;
+                    let version = '';
+                    if (typeof data === 'object') {
+                        installed = !!data.installed;
+                        version = data.version || '';
+                    } else {
+                        installed = !!data;
+                    }
+
+                    const cls = installed ? 'status-ok' : 'status-warn';
+                    const icon = installed ? '✓' : '○';
+                    const versionHtml = version
+                        ? `<span class="version">v${version}</span>`
+                        : '';
+
+                    html += `
+                        <div class="check-item">
+                            <span>${pkg}${versionHtml}</span>
+                            <span class="${cls}">${icon}</span>
+                        </div>
+                    `;
+                }
+
+                html += '</div>';
+                container.innerHTML = html;
+
+                document.getElementById('step1Btn').disabled = !allOk;
+
+            } catch (error) {
+                document.getElementById('systemCheck').innerHTML = `
+                    <div class="log-output">
+                        <div class="error">❌ Ошибка проверки: ${error.message}</div>
+                    </div>
+                `;
+            }
+        }
+
+        // ============ УЖЕ УСТАНОВЛЕННЫЕ ============
+
+        async function loadInstalled() {
+            try {
+                const r = await fetch('/api/installed');
+                installedState = await r.json();
+                applyInstalledState();
+            } catch (e) {
+                console.warn('Не удалось получить /api/installed:', e);
+            }
+        }
+
+        function applyInstalledState() {
+            let anyInstalled = false;
+
+            const sambaInstalled = installedState.samba?.installed;
+            if (sambaInstalled) anyInstalled = true;
+            markComponent('samba', sambaInstalled,
+                installedState.samba?.version,
+                installedState.samba?.service_active
+                    ? 'сервис активен' : 'сервис остановлен');
+
+            const pythonInstalled = installedState.python?.installed;
+            if (pythonInstalled) anyInstalled = true;
+            markComponent('python', pythonInstalled,
+                installedState.python?.version, null);
+
+            const webInstalled = installedState.web?.app_installed;
+            if (webInstalled) anyInstalled = true;
+            markComponent('web', webInstalled, null,
+                installedState.web?.service_active
+                    ? 'сервис активен' : 'сервис остановлен');
+
+            const disksInstalled = installedState.disks?.installed;
+            if (disksInstalled) anyInstalled = true;
+            markComponent('disks', disksInstalled,
+                installedState.disks?.version, null);
+
+            if (anyInstalled) {
+                const block = document.getElementById('forceReinstallBlock');
+                if (block) block.classList.add('active');
+            }
+        }
+
+        function markComponent(name, installed, version, extra) {
+            const card = document.querySelector(
+                `.component-card[data-component="${name}"]`
+            );
+            if (!card) return;
+
+            if (installed) {
+                card.classList.add('installed');
+                // НЕ убираем .selected и НЕ удаляем из selectedComponents —
+                // компонент остаётся выбранным, чтобы можно было переустановить
+                card.dataset.installed = 'true';
+
+                const badges = card.querySelector('.badges');
+                if (badges && !badges.querySelector('.badge-installed')) {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge badge-success badge-installed';
+                    let text = 'Уже установлено';
+                    if (version) text += ` v${version}`;
+                    if (extra) text += ` — ${extra}`;
+                    badge.textContent = text;
+                    badges.appendChild(badge);
+                }
+            }
+        }
+
+        // ============ ВЫБОР ============
+
+        function toggleComponent(element, component) {
+            if (element.dataset.installed === 'true') {
+                const cb = document.getElementById('forceReinstall');
+                const forceOn = cb && cb.checked;
+
+                if (!forceOn) {
+                    alert(
+                        `Компонент "${component}" уже установлен.\n\n` +
+                        `Включите "Переустановить всё" на шаге 3, ` +
+                        `чтобы разрешить выбор.`
+                    );
+                    return;
+                }
+            }
+
+            element.classList.toggle('selected');
+            const index = selectedComponents.indexOf(component);
+            if (index > -1) {
+                selectedComponents.splice(index, 1);
+            } else {
+                selectedComponents.push(component);
+            }
+        }
+
+        // ============ ПЕРЕУСТАНОВКА ============
+
+        function onForceReinstallChange(cb) {
+            if (cb.checked) {
+                // Выбираем ВСЕ компоненты (включая установленные)
+                document.querySelectorAll('.component-card').forEach(card => {
+                    const name = card.dataset.component;
+                    if (!name) return;
+                    if (!selectedComponents.includes(name)) {
+                        card.classList.add('selected');
+                        selectedComponents.push(name);
+                    }
+                });
+                console.log('Переустановка: выбраны все компоненты',
+                            selectedComponents);
+            }
+        }
+
+        // ============ УСТАНОВКА ============
+
+        async function startInstallation() {
+            const username  = document.getElementById('adminUsername').value.trim();
+            const password  = document.getElementById('adminPassword').value;
+            const workgroup = document.getElementById('workgroup').value.trim();
+            const port      = document.getElementById('webPort').value;
+            const forceReinstall =
+                document.getElementById('forceReinstall')?.checked || false;
+
+            if (!username || !password) {
+                alert('Введите логин и пароль администратора');
+                return;
+            }
+            if (password.length < 6) {
+                alert('Пароль должен быть не менее 6 символов');
+                return;
+            }
+            if (!selectedComponents.length && !forceReinstall) {
+                alert('Выберите хотя бы один компонент');
+                return;
+            }
+
+            showStep(4);
+
+            const logDiv = document.getElementById('installLog');
+            logDiv.innerHTML = '';
+
+            function addLog(message, type = 'info') {
+                const div = document.createElement('div');
+                div.className = type;
+                div.textContent = message;
+                logDiv.appendChild(div);
+                logDiv.scrollTop = logDiv.scrollHeight;
+            }
+
+            try {
+                addLog('>>> Начинаем установку...', 'info');
+                updateProgress(10);
+
+                const installResponse = await fetch('/api/install', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        components: selectedComponents,
+                        admin_username: username,
+                        admin_password: password,
+                        workgroup: workgroup,
+                        port: port,
+                        force_reinstall: forceReinstall
+                    })
+                });
+
+                const installData = await installResponse.json();
+
+                if (installData.error) {
+                    addLog(`❌ Ошибка: ${installData.error}`, 'error');
+                    if (installData.results) {
+                        for (const [key, result] of Object.entries(installData.results)) {
+                            const icon = result.success ? '✓' : '✗';
+                            const type = result.success ? 'success' : 'error';
+                            addLog(`   ${icon} ${key}`, type);
+                        }
+                    }
+                    return;
+                }
+
+                updateProgress(70);
+
+                if (installData.results) {
+                    addLog('', 'info');
+                    addLog('>>> Результаты установки:', 'info');
+                    for (const [key, result] of Object.entries(installData.results)) {
+                        const icon = result.success ? '✓' : '✗';
+                        const type = result.success ? 'success' : 'error';
+                        addLog(`   ${icon} ${key}`, type);
+                    }
+                }
+
+                if (installData.skipped && installData.skipped.length) {
+                    addLog('', 'info');
+                    addLog('>>> Пропущено (уже установлено):', 'skip');
+                    installData.skipped.forEach(item => {
+                        addLog(`   • ${item.message}`, 'skip');
+                    });
+                }
+
+                const webNeeded = selectedComponents.includes('web')
+                              || forceReinstall
+                              || !installedState.web?.app_installed;
+
+                if (webNeeded) {
+                    addLog('', 'info');
+                    addLog('>>> Установка веб-приложения...', 'info');
+                    updateProgress(85);
+
+                    const appResponse = await fetch('/api/install-app', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            force_reinstall: forceReinstall
+                        })
+                    });
+
+                    const appData = await appResponse.json();
+
+                    if (appData.error) {
+                        addLog(`❌ Ошибка установки приложения: ${appData.error}`, 'error');
+                        return;
+                    }
+
+                    if (appData.skipped && appData.skipped.length) {
+                        appData.skipped.forEach(item => {
+                            addLog(`   • ${item.message}`, 'skip');
+                        });
+                    }
+
+                    addLog('✓ Приложение установлено успешно!', 'success');
+                } else {
+                    addLog('   • Веб-приложение уже установлено — пропускаю', 'skip');
+                }
+
+                updateProgress(100);
+
+                setTimeout(() => {
+                    const host = systemInfo.hostname || 'localhost';
+                    document.getElementById('finalUrl').textContent =
+                        `http://${host}:${port}`;
+                    document.getElementById('finalUsername').textContent = username;
+                    document.getElementById('finalPassword').textContent = password;
+                    showStep(5);
+                }, 1500);
+
+            } catch (error) {
+                addLog(`❌ Критическая ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        function updateProgress(percent) {
+            const el = document.getElementById('installProgress');
+            el.style.width = percent + '%';
+            el.textContent = Math.round(percent) + '%';
+        }
+
+        // ============ ИНИЦИАЛИЗАЦИЯ ============
+
+        document.addEventListener('DOMContentLoaded', function() {
+            checkSystem();
+            loadInstalled();
+        });
+    </script>
+</body>
+</html>

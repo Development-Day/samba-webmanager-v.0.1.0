@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.prod
+    container_name: samba-web-app
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      FLASK_ENV: production
+      SECRET_KEY: ${SECRET_KEY:-change_me}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+    volumes:
+      - /etc/samba:/etc/samba:ro
+      - /var/log/samba:/var/log/samba:ro
+      - ../logs:/app/logs
+      - ../backups:/app/backups
+    privileged: true
+    networks:
+      - samba-network
+
+networks:
+  samba-network:
+    driver: bridge

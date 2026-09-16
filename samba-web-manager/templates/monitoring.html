@@ -1,0 +1,226 @@
+{% extends "layout.html" %}
+
+{% block title %}Мониторинг{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center border-bottom">
+    <h1><i class="bi bi-graph-up"></i> МОНИТОРИНГ SAMBA</h1>
+    <button onclick="refreshData()" class="btn btn-primary">
+        <i class="bi bi-arrow-repeat"></i> ОБНОВИТЬ
+    </button>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-plug"></i> АКТИВНЫЕ ПОДКЛЮЧЕНИЯ
+                <span class="badge badge-info" id="conn-count" style="margin-left:10px;">0</span>
+            </div>
+            <div id="connections">
+                <div class="text-center text-muted py-3">Загрузка...</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-heart"></i> ЗДОРОВЬЕ СИСТЕМЫ
+            </div>
+            <div id="health">
+                <div class="text-center text-muted py-3">Загрузка...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-info-circle"></i> ИНФОРМАЦИЯ О СИСТЕМЕ
+            </div>
+            <div id="system-info">
+                <div class="text-center text-muted py-3">Загрузка...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function formatUptime(seconds) {
+    if (!seconds || seconds < 0) return '—';
+    const d = Math.floor(seconds / 86400);
+    const h = Math.floor((seconds % 86400) / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    if (d > 0) return `${d}д ${h}ч ${m}м`;
+    if (h > 0) return `${h}ч ${m}м`;
+    return `${m}м`;
+}
+
+function refreshData() {
+    // === Активные подключения ===
+    fetch('/api/monitoring/connections')
+        .then(r => r.json())
+        .then(data => {
+            const container = document.getElementById('connections');
+            const countBadge = document.getElementById('conn-count');
+
+            if (!Array.isArray(data)) {
+                container.innerHTML = '<div class="text-center text-danger py-3">Ошибка формата данных</div>';
+                return;
+            }
+
+            countBadge.textContent = data.length;
+
+            if (data.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-muted py-3">
+                        <i class="bi bi-plug display-6"></i>
+                        <p class="mt-2">Нет активных подключений</p>
+                        <small class="text-muted">
+                            Подключитесь к шаре Samba, чтобы увидеть здесь сессии
+                        </small>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = `
+                <div style="overflow-x:auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ПОЛЬЗОВАТЕЛЬ</th>
+                                <th>ШАРА</th>
+                                <th>IP</th>
+                                <th>ПРОТОКОЛ</th>
+                                <th>ВРЕМЯ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            data.forEach(conn => {
+                html += `
+                    <tr>
+                        <td>${conn.user || '—'}</td>
+                        <td><code>${conn.service || '—'}</code></td>
+                        <td>${conn.ip || '—'}</td>
+                        <td>${conn.protocol || '—'}</td>
+                        <td>${conn.time || '—'}</td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+        })
+        .catch(err => {
+            console.error('Ошибка мониторинга:', err);
+            document.getElementById('connections').innerHTML =
+                `<div class="text-center text-danger py-3">Ошибка: ${err.message}</div>`;
+        });
+
+    // === Статус Samba ===
+    fetch('/api/status')
+        .then(r => r.json())
+        .then(data => {
+            const container = document.getElementById('health');
+            const activeIcon = data.active
+                ? '<i class="bi bi-check-circle-fill text-success"></i>'
+                : '<i class="bi bi-x-circle-fill text-danger"></i>';
+            const activeText = data.active ? 'РАБОТАЕТ' : 'ОСТАНОВЛЕНА';
+
+            const smbdIcon = data.smbd ? '✅' : '❌';
+            const nmbdIcon = data.nmbd ? '✅' : '❌';
+            const smbdClass = data.smbd ? 'success' : 'danger';
+            const nmbdClass = data.nmbd ? 'success' : 'danger';
+
+            container.innerHTML = `
+                <div class="row text-center mb-3">
+                    <div class="col-md-6">
+                        <strong>СТАТУС:</strong><br>
+                        ${activeIcon} ${activeText}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>UPTIME:</strong><br>
+                        <small>${data.uptime || '—'}</small>
+                    </div>
+                </div>
+                <div class="row text-center">
+                    <div class="col-md-6">
+                        <span class="badge badge-${smbdClass}">
+                            SMBD ${smbdIcon}
+                        </span>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="badge badge-${nmbdClass}">
+                            NMBD ${nmbdIcon}
+                        </span>
+                    </div>
+                </div>
+            `;
+        })
+        .catch(err => {
+            console.error('Ошибка статуса:', err);
+            document.getElementById('health').innerHTML =
+                `<div class="text-center text-danger py-3">Ошибка: ${err.message}</div>`;
+        });
+
+    // === Системная информация ===
+    fetch('/api/system/info')
+        .then(r => r.json())
+        .then(data => {
+            const container = document.getElementById('system-info');
+            const cpu = data.cpu || {};
+            const mem = data.memory || {};
+            const disk = data.disk || {};
+
+            container.innerHTML = `
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <strong>CPU</strong><br>
+                        <small>${cpu.usage || 0}%</small><br>
+                        <small class="text-muted">${cpu.cores || '?'} ядер</small>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>ПАМЯТЬ</strong><br>
+                        <small>${mem.percent || 0}%</small><br>
+                        <small class="text-muted">
+                            ${formatBytes(mem.used || 0)} / ${formatBytes(mem.total || 0)}
+                        </small>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>ДИСК /</strong><br>
+                        <small>${disk.percent || 0}%</small><br>
+                        <small class="text-muted">
+                            ${formatBytes(disk.used || 0)} / ${formatBytes(disk.total || 0)}
+                        </small>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>ХОСТ</strong><br>
+                        <small>${data.hostname || '—'}</small><br>
+                        <small class="text-muted">${data.python || '—'}</small>
+                    </div>
+                </div>
+            `;
+        })
+        .catch(err => {
+            console.error('Ошибка system/info:', err);
+            document.getElementById('system-info').innerHTML =
+                `<div class="text-center text-danger py-3">Ошибка: ${err.message}</div>`;
+        });
+}
+
+function formatBytes(bytes, decimals = 1) {
+    if (!bytes || bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(decimals)) + ' ' + sizes[i];
+}
+
+document.addEventListener('DOMContentLoaded', refreshData);
+</script>
+{% endblock %}

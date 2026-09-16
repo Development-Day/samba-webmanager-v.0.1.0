@@ -1,0 +1,21 @@
+﻿# ============================================
+# Samba Web Manager - Python зависимости
+# ============================================
+# Протестировано на Python 3.11
+# ============================================
+
+# Web framework
+Flask==2.3.3
+
+# Environment variables
+python-dotenv==1.0.0
+
+# System monitoring
+psutil==5.9.5
+
+# Password hashing
+bcrypt==4.0.1
+
+# Production WSGI server
+gunicorn==21.2.0
+gevent==23.9.1

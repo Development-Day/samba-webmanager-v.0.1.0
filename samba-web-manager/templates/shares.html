@@ -1,0 +1,66 @@
+{% extends "layout.html" %}
+
+{% block title %}Общие папки{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center border-bottom">
+    <h1><i class="bi bi-folder"></i> ОБЩИЕ ПАПКИ</h1>
+    <button onclick="showAddShare()" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> ДОБАВИТЬ
+    </button>
+</div>
+
+<div id="shares-list">
+    <div class="text-center text-muted py-5">
+        <i class="bi bi-folder display-1"></i>
+        <p>Загрузка...</p>
+    </div>
+</div>
+
+<div class="modal-overlay" id="shareModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h5 class="modal-title" id="shareModalTitle">ДОБАВИТЬ ШАРУ</h5>
+            <button class="modal-close" onclick="closeModal('shareModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="shareForm">
+                <input type="hidden" id="shareNameEdit">
+                <div class="mb-3">
+                    <label>ИМЯ ШАРЫ</label>
+                    <input type="text" id="shareName" required>
+                    <small>Только буквы, цифры, _ - .</small>
+                </div>
+                <div class="mb-3">
+                    <label>ПУТЬ</label>
+                    <input type="text" id="sharePath" required>
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" id="shareReadOnly">
+                    <label for="shareReadOnly" class="form-check-label">Только чтение</label>
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" id="shareGuestOk">
+                    <label for="shareGuestOk" class="form-check-label">Доступ для гостей</label>
+                </div>
+                <div class="mb-3">
+                    <label>ПОЛЬЗОВАТЕЛИ (через запятую)</label>
+                    <input type="text" id="shareValidUsers" placeholder="user1,user2">
+                </div>
+                <div class="mb-3">
+                    <label>КОММЕНТАРИЙ</label>
+                    <input type="text" id="shareComment">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('shareModal')">ОТМЕНА</button>
+            <button class="btn btn-primary" onclick="saveShare()">СОХРАНИТЬ</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/shares.js') }}"></script>
+{% endblock %}

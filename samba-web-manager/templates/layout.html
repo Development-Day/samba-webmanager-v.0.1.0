@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ app_name }}{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <header class="topbar">
+        <a href="/" class="topbar-brand">
+            <i class="bi bi-server"></i> {{ app_name }}
+        </a>
+        <div class="d-flex align-items-center">
+            <span class="topbar-user">
+                <i class="bi bi-person"></i> {{ session.username }}
+            </span>
+            <a href="/logout" class="btn btn-sm">
+                <i class="bi bi-box-arrow-right"></i> ВЫХОД
+            </a>
+        </div>
+    </header>
+
+    <div class="layout">
+        <nav class="sidebar">
+            <ul class="sidebar-nav">
+                <li><a href="/" class="{% if request.path == '/' %}active{% endif %}"><i class="bi bi-speedometer2"></i> ДАШБОРД</a></li>
+                <li><a href="/shares" class="{% if request.path == '/shares' %}active{% endif %}"><i class="bi bi-folder"></i> ОБЩИЕ ПАПКИ</a></li>
+                <li><a href="/users" class="{% if request.path == '/users' %}active{% endif %}"><i class="bi bi-people"></i> ПОЛЬЗОВАТЕЛИ</a></li>
+                <li><a href="/disks" class="{% if request.path == '/disks' %}active{% endif %}"><i class="bi bi-hdd-stack"></i> ДИСКИ</a></li>
+                <li><a href="/backups" class="{% if request.path == '/backups' %}active{% endif %}"><i class="bi bi-archive"></i> БЭКАПЫ</a></li>
+                <li><a href="/monitoring" class="{% if request.path == '/monitoring' %}active{% endif %}"><i class="bi bi-graph-up"></i> МОНИТОРИНГ</a></li>
+                <li><a href="/logs" class="{% if request.path == '/logs' %}active{% endif %}"><i class="bi bi-journal"></i> ЛОГИ</a></li>
+            </ul>
+        </nav>
+
+        <main class="content">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

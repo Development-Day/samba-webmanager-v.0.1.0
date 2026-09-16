@@ -1,0 +1,148 @@
+{% extends "layout.html" %}
+
+{% block title %}Бэкапы{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center border-bottom">
+    <h1><i class="bi bi-archive"></i> БЭКАПЫ КОНФИГУРАЦИИ</h1>
+    <button onclick="createBackup()" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> СОЗДАТЬ БЭКАП
+    </button>
+</div>
+
+<div id="backups-list">
+    <div class="text-center text-muted py-5">
+        <i class="bi bi-archive display-1"></i>
+        <p>Загрузка...</p>
+    </div>
+</div>
+
+<script>
+// Форматирование даты
+function formatDate(dateStr) {
+    if (!dateStr) return '—';
+    try {
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr;
+        return d.toLocaleString('ru-RU', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    } catch (e) {
+        return dateStr;
+    }
+}
+
+function loadBackups() {
+    fetch('/api/backups')
+        .then(r => r.json())
+        .then(backups => {
+            const container = document.getElementById('backups-list');
+
+            if (!Array.isArray(backups) || backups.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-archive display-1"></i>
+                        <p>Нет бэкапов</p>
+                        <p class="text-muted" style="font-size: 11px;">
+                            Нажмите «СОЗДАТЬ БЭКАП», чтобы создать первый
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ФАЙЛ</th>
+                            <th>ДАТА</th>
+                            <th>РАЗМЕР</th>
+                            <th>ДЕЙСТВИЯ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            backups.forEach(backup => {
+                html += `
+                    <tr>
+                        <td>
+                            <i class="bi bi-file-zip"></i>
+                            ${backup.filename || '—'}
+                        </td>
+                        <td>${formatDate(backup.date)}</td>
+                        <td>${backup.size_human || '—'}</td>
+                        <td>
+                            <button onclick="restoreBackup('${backup.filename}')"
+                                    class="btn btn-warning btn-sm">
+                                <i class="bi bi-arrow-clockwise"></i> ВОССТАНОВИТЬ
+                            </button>
+                            <button onclick="deleteBackup('${backup.filename}')"
+                                    class="btn btn-danger btn-sm">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        })
+        .catch(err => {
+            console.error('Ошибка загрузки бэкапов:', err);
+            document.getElementById('backups-list').innerHTML = `
+                <div class="text-center text-danger py-5">
+                    <i class="bi bi-exclamation-triangle display-1"></i>
+                    <p>Ошибка загрузки: ${err.message}</p>
+                </div>
+            `;
+        });
+}
+
+function createBackup() {
+    fetch('/api/backups', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) {
+                alert('Ошибка: ' + data.error);
+            } else {
+                alert(data.message || 'Бэкап создан');
+                loadBackups();
+            }
+        })
+        .catch(err => alert('Ошибка: ' + err.message));
+}
+
+function restoreBackup(filename) {
+    if (!confirm(`Восстановить конфигурацию из ${filename}?\n\nТекущий smb.conf будет перезаписан!`)) return;
+
+    fetch(`/api/backups/${filename}`, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            alert(data.message || data.error);
+            if (data.message) location.reload();
+        })
+        .catch(err => alert('Ошибка: ' + err.message));
+}
+
+function deleteBackup(filename) {
+    if (!confirm(`Удалить ${filename}?`)) return;
+
+    fetch(`/api/backups/${filename}`, { method: 'DELETE' })
+        .then(r => r.json())
+        .then(data => {
+            alert(data.message || data.error);
+            if (data.message) loadBackups();
+        })
+        .catch(err => alert('Ошибка: ' + err.message));
+}
+
+document.addEventListener('DOMContentLoaded', loadBackups);
+</script>
+{% endblock %}

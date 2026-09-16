@@ -1,0 +1,247 @@
+{% extends "layout.html" %}
+
+{% block title %}Дашборд{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center border-bottom">
+    <h1><i class="bi bi-speedometer2"></i> ДАШБОРД</h1>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <h5 class="card-title"><i class="bi bi-folder"></i> ОБЩИЕ ПАПКИ</h5>
+            <p class="display-4">{{ stats.shares }}</p>
+            <a href="/shares" class="btn btn-sm">УПРАВЛЯТЬ</a>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <h5 class="card-title"><i class="bi bi-people"></i> ПОЛЬЗОВАТЕЛИ</h5>
+            <p class="display-4">{{ stats.users }}</p>
+            <a href="/users" class="btn btn-sm">УПРАВЛЯТЬ</a>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <h5 class="card-title"><i class="bi bi-hdd-stack"></i> ДИСКИ</h5>
+            <p class="display-4" id="disksCount">{{ stats.disks_mounted|default(0) }}</p>
+            <small class="card-count-hint">
+                смонтировано из
+                <span id="disksTotalSmall">{{ stats.disks_total|default(0) }}</span> всего
+            </small>
+            <a href="/disks" class="btn btn-sm">УПРАВЛЯТЬ</a>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card {% if status.active %}bg-success{% else %}bg-danger{% endif %} text-white">
+            <h5 class="card-title"><i class="bi bi-server"></i> SAMBA</h5>
+            <p class="display-6">{{ status.status }}</p>
+            <button onclick="restartSamba()" class="btn btn-sm">
+                <i class="bi bi-arrow-repeat"></i> ПЕРЕЗАПУСТИТЬ
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-folder"></i> ПОСЛЕДНИЕ ПАПКИ
+            </div>
+            {% if shares %}
+                <ul class="list-group">
+                {% for share in shares %}
+                    <li class="list-group-item">
+                        <span><i class="bi bi-folder"></i> {{ share.name }}</span>
+                        <span class="badge badge-secondary">{{ share.path }}</span>
+                    </li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted text-center py-3">Нет общих папок</p>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-hdd"></i> ДИСКИ
+                <span class="badge badge-info" style="margin-left:10px;">
+                    Всего: <span id="disksTotal">{{ total_disks|default(0) }}</span>
+                </span>
+                <span class="badge badge-success" style="margin-left:5px;">
+                    Смонтировано: <span id="disksMounted">{{ mounted_count|default(0) }}</span>
+                </span>
+            </div>
+
+            <div id="disksTable">
+                {% if disks %}
+                    <div style="overflow-x:auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Устройство</th>
+                                    <th>Точка</th>
+                                    <th>ФС</th>
+                                    <th>Размер</th>
+                                    <th>Занято</th>
+                                    <th>Заполнение</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for d in disks %}
+                                <tr>
+                                    <td><code>{{ d.device or '—' }}</code></td>
+                                    <td>{{ d.mount_point or '—' }}</td>
+                                    <td>{{ d.filesystem or '—' }}</td>
+                                    <td>{{ d.size_human or '—' }}</td>
+                                    <td>{{ d.used_human or '—' }}</td>
+                                    <td>
+                                        {% set pct = d.usage_percent or 0 %}
+                                        <div class="progress" style="height:16px;min-width:80px;">
+                                            <div class="progress-bar
+                                                {% if pct > 90 %}bg-danger
+                                                {% elif pct > 70 %}bg-warning{% endif %}"
+                                                 style="width: {{ pct }}%">
+                                                {{ pct }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-muted text-center py-3">
+                        <i class="bi bi-arrow-repeat pulsing"></i> Загрузка...
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="text-center text-muted" style="margin-top:15px;">
+                <i class="bi bi-clock"></i> ВРЕМЯ РАБОТЫ: {{ status.uptime|default('unknown') }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Маленькая подпись под цифрой */
+.card-count-hint {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 1px;
+    opacity: 0.85;
+    margin-top: -8px;
+    margin-bottom: 8px;
+    color: inherit;
+    text-shadow: 0 0 5px currentColor;
+}
+</style>
+
+<script>
+function restartSamba() {
+    if (confirm('Перезапустить службу Samba?')) {
+        fetch('/api/restart', { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                alert(data.message || data.error);
+                location.reload();
+            });
+    }
+}
+
+// ============ ЗАГРУЗКА ДИСКОВ (обновление через JS) ============
+async function loadDisks() {
+    try {
+        const r = await fetch('/api/system/info');
+        const data = await r.json();
+
+        const disks = data.disks || [];
+        const mountedAll = data.mounted_disks
+            || disks.filter(d => d.is_mounted && d.mount_point);
+        const mounted = mountedAll.filter(d =>
+            d.filesystem !== 'swap' && d.mount_point !== '[SWAP]'
+        );
+
+        // Обновляем счётчики
+        const setText = (id, value) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value;
+        };
+
+        setText('disksTotal', data.total_disks || disks.length);
+        setText('disksMounted', mounted.length);
+
+        // Карточка "ДИСКИ" в шапке
+        setText('disksCount', mounted.length);
+        setText('disksTotalSmall', data.total_disks || disks.length);
+
+        // Обновляем таблицу
+        const container = document.getElementById('disksTable');
+        if (!container) return;
+
+        if (!mounted.length) {
+            container.innerHTML =
+                '<div class="text-muted text-center py-3">' +
+                'Нет смонтированных дисков</div>';
+            return;
+        }
+
+        let html = `
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Устройство</th>
+                            <th>Точка</th>
+                            <th>ФС</th>
+                            <th>Размер</th>
+                            <th>Занято</th>
+                            <th>Заполнение</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        mounted.forEach(d => {
+            const percent = d.usage_percent || 0;
+            let barClass = '';
+            if (percent > 90) barClass = 'bg-danger';
+            else if (percent > 70) barClass = 'bg-warning';
+
+            html += `
+                <tr>
+                    <td><code>${d.device || '—'}</code></td>
+                    <td>${d.mount_point || '—'}</td>
+                    <td>${d.filesystem || '—'}</td>
+                    <td>${d.size_human || '—'}</td>
+                    <td>${d.used_human || '—'}</td>
+                    <td>
+                        <div class="progress" style="height:16px;min-width:80px;">
+                            <div class="progress-bar ${barClass}"
+                                 style="width:${percent}%">${percent}%</div>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += '</tbody></table></div>';
+        container.innerHTML = html;
+
+    } catch (e) {
+        console.error('Ошибка загрузки дисков:', e);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('disksTable')) {
+        loadDisks();
+    }
+});
+</script>
+{% endblock %}

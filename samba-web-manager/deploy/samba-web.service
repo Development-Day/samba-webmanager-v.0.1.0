@@ -1,0 +1,49 @@
+[Unit]
+Description=Samba Web Manager - Веб-интерфейс управления Samba
+Documentation=https://github.com/yourusername/samba-web-manager
+After=network.target smbd.service nmbd.service
+Wants=smbd.service
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/opt/samba-web-manager
+
+# Переменные окружения
+Environment="PYTHONUNBUFFERED=1"
+Environment="FLASK_ENV=production"
+Environment="PORT=5000"
+
+# Загрузка .env файла
+EnvironmentFile=-/opt/samba-web-manager/.env
+
+# Основная команда (Gunicorn для продакшена)
+# Для разработки можно заменить на: /usr/bin/python3 /opt/samba-web-manager/app.py
+ExecStart=/usr/bin/gunicorn \
+    --worker-class gevent \
+    --workers 2 \
+    --bind 0.0.0.0:5000 \
+    --timeout 120 \
+    --access-logfile /opt/samba-web-manager/logs/access.log \
+    --error-logfile /opt/samba-web-manager/logs/error.log \
+    --log-level info \
+    wsgi:app
+
+# Автоперезапуск
+Restart=always
+RestartSec=5
+KillMode=mixed
+TimeoutStopSec=30
+
+# Логирование в journald
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=samba-web
+
+# Безопасность (базовая)
+NoNewPrivileges=false
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

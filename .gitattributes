@@ -1,0 +1,50 @@
+# ============================================================
+# Samba Web Manager - .gitattributes
+# ============================================================
+# Нормализация переносов строк для кроссплатформенной работы
+# ============================================================
+
+# По умолчанию — LF в репозитории, авто-конвертация при checkout
+* text=auto eol=lf
+
+# Shell-скрипты — всегда LF
+*.sh text eol=lf
+
+# Python — всегда LF
+*.py text eol=lf
+
+# Markdown, YAML, JSON — LF
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+
+# Конфиги — LF
+*.conf text eol=lf
+*.cfg text eol=lf
+*.ini text eol=lf
+*.env text eol=lf
+.env.example text eol=lf
+
+# HTML, CSS, JS — LF
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+
+# Бинарные файлы
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.gz binary
+*.zip binary
+*.tar binary
+*.pdf binary
+*.so binary
+*.pyd binary
+*.pyc binary
+
+# Не трогать .git*
+.gitignore text eol=lf
+.gitattributes text eol=lf

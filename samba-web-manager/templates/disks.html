@@ -1,0 +1,259 @@
+{% extends "layout.html" %}
+
+{% block title %}Управление дисками{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center border-bottom">
+    <h1><i class="bi bi-hdd-stack"></i> УПРАВЛЕНИЕ ДИСКАМИ</h1>
+    <div class="d-flex gap-2">
+        <button onclick="autoMount()" class="btn btn-success">
+            <i class="bi bi-play-fill"></i> АВТОМОНТИРОВАТЬ
+        </button>
+        <button onclick="refreshDisks()" class="btn btn-primary">
+            <i class="bi bi-arrow-repeat"></i> ОБНОВИТЬ
+        </button>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <h5 class="card-title">ВСЕГО ДИСКОВ</h5>
+            <p class="display-4" id="total-disks">0</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <h5 class="card-title">СМОНТИРОВАНО</h5>
+            <p class="display-4" id="mounted-disks">0</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <h5 class="card-title">СВОБОДНО</h5>
+            <p class="display-4" id="total-free">0</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <h5 class="card-title">ИСПОЛЬЗОВАНО</h5>
+            <p class="display-4" id="total-used">0</p>
+        </div>
+    </div>
+</div>
+
+<div id="disks-list">
+    <div class="text-center text-muted py-5">
+        <i class="bi bi-hdd-stack display-1"></i>
+        <p>Загрузка...</p>
+    </div>
+</div>
+
+<div class="modal-overlay" id="mountModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h5 class="modal-title">МОНТИРОВАНИЕ ДИСКА</h5>
+            <button class="modal-close" onclick="closeModal('mountModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="mountForm">
+                <input type="hidden" id="mountDevice">
+                <div class="mb-3">
+                    <label>ТОЧКА МОНТИРОВАНИЯ</label>
+                    <select id="mountPoint"></select>
+                </div>
+                <div class="mb-3">
+                    <label>ФАЙЛОВАЯ СИСТЕМА</label>
+                    <select id="mountFilesystem">
+                        <option value="auto">Автоопределение</option>
+                        <option value="ext4">ext4</option>
+                        <option value="ntfs">ntfs</option>
+                        <option value="exfat">exfat</option>
+                        <option value="vfat">vfat</option>
+                    </select>
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" id="mountFstab" checked>
+                    <label for="mountFstab" class="form-check-label">Добавить в /etc/fstab</label>
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" id="mountCreateShare" checked>
+                    <label for="mountCreateShare" class="form-check-label">Создать Samba шару</label>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('mountModal')">ОТМЕНА</button>
+            <button class="btn btn-primary" onclick="mountDisk()">СМОНТИРОВАТЬ</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function refreshDisks() {
+    fetch('/api/disks')
+        .then(r => r.json())
+        .then(data => {
+            renderDisks(data);
+            updateStats(data);
+        })
+        .catch(err => console.error('Ошибка:', err));
+}
+
+function renderDisks(data) {
+    const container = document.getElementById('disks-list');
+    const disks = data.disks || [];
+
+    if (disks.length === 0) {
+        container.innerHTML = `<div class="text-center text-muted py-5"><i class="bi bi-hdd-stack display-1"></i><p>Нет подключенных дисков</p></div>`;
+        return;
+    }
+
+    let html = '';
+    disks.forEach(disk => {
+        html += `
+            <div class="card ${disk.is_mounted ? 'border-success' : ''}">
+                <div class="row align-items-center">
+                    <div class="col-md-3">
+                        <strong>${disk.device}</strong>
+                        <span class="badge badge-secondary">${disk.type}</span>
+                        <br><small class="text-muted">${disk.model || 'Unknown'}</small>
+                    </div>
+                    <div class="col-md-3">
+                        <div>${disk.label || 'Без метки'}</div>
+                        <small class="text-muted">${disk.filesystem}</small>
+                        <br><small>${disk.size_human}</small>
+                    </div>
+                    <div class="col-md-3">
+                        ${disk.is_mounted ? `
+                            <div class="progress" style="height:20px;">
+                                <div class="progress-bar ${disk.usage_percent > 90 ? 'bg-danger' : disk.usage_percent > 70 ? 'bg-warning' : ''}"
+                                     style="width:${disk.usage_percent}%">${disk.usage_percent}%</div>
+                            </div>
+                            <small>${disk.used_human} / ${disk.size_human}</small>
+                        ` : `<span class="text-muted">Не смонтирован</span>`}
+                    </div>
+                    <div class="col-md-3 text-right">
+                        ${disk.is_mounted ? `
+                            <button onclick="unmountDisk('${disk.mount_point}')" class="btn btn-danger btn-sm">
+                                <i class="bi bi-eject"></i>
+                            </button>
+                            <button onclick="createShare('${disk.mount_point}')" class="btn btn-primary btn-sm">
+                                <i class="bi bi-folder"></i>
+                            </button>
+                        ` : `
+                            <button onclick="openMountModal('${disk.device}')" class="btn btn-success btn-sm">
+                                <i class="bi bi-play-fill"></i> СМОНТИРОВАТЬ
+                            </button>
+                        `}
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+}
+
+function updateStats(data) {
+    document.getElementById('total-disks').textContent = data.total_disks || 0;
+    document.getElementById('mounted-disks').textContent = data.mounted_disks || 0;
+
+    let totalFree = 0, totalUsed = 0;
+    (data.disks || []).forEach(d => {
+        if (d.is_mounted) {
+            totalFree += d.free;
+            totalUsed += d.used;
+        }
+    });
+    document.getElementById('total-free').textContent = formatBytes(totalFree);
+    document.getElementById('total-used').textContent = formatBytes(totalUsed);
+}
+
+function autoMount() {
+    if (!confirm('Смонтировать все обнаруженные диски?')) return;
+    fetch('/api/disks/auto-mount', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            alert(data.message || data.error);
+            if (data.success) refreshDisks();
+        });
+}
+
+function openMountModal(device) {
+    document.getElementById('mountDevice').value = device;
+    fetch('/api/disks/mount-points')
+        .then(r => r.json())
+        .then(data => {
+            const select = document.getElementById('mountPoint');
+            select.innerHTML = '<option value="">Выберите точку</option>';
+            (data.mount_points || []).forEach(point => {
+                select.innerHTML += `<option value="${point}">${point}</option>`;
+            });
+        });
+    openModal('mountModal');
+}
+
+function mountDisk() {
+    const device = document.getElementById('mountDevice').value;
+    const mountPoint = document.getElementById('mountPoint').value;
+    const filesystem = document.getElementById('mountFilesystem').value;
+    const fstab = document.getElementById('mountFstab').checked;
+    const createShare = document.getElementById('mountCreateShare').checked;
+
+    if (!mountPoint) {
+        alert('Выберите точку монтирования');
+        return;
+    }
+
+    fetch('/api/disks/mount', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            device, mount_point: mountPoint,
+            options: { filesystem: filesystem === 'auto' ? null : filesystem, options: ['rw'], fstab },
+            create_share: createShare
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        alert(data.message || data.error);
+        if (data.success) {
+            closeModal('mountModal');
+            refreshDisks();
+        }
+    });
+}
+
+function unmountDisk(mountPoint) {
+    if (!confirm(`Отмонтировать ${mountPoint}?`)) return;
+    fetch('/api/disks/unmount', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            mount_point: mountPoint,
+            remove_fstab: confirm('Удалить из /etc/fstab?'),
+            remove_share: confirm('Удалить Samba шару?')
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        alert(data.message || data.error);
+        if (data.success) refreshDisks();
+    });
+}
+
+function createShare(mountPoint) {
+    const name = prompt('Имя шары:', mountPoint.split('/').pop());
+    if (!name) return;
+    fetch('/api/shares', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, path: mountPoint, read_only: false, guest_ok: true })
+    })
+    .then(r => r.json())
+    .then(data => alert(data.message || data.error));
+}
+
+document.addEventListener('DOMContentLoaded', refreshDisks);
+</script>
+{% endblock %}

@@ -1,0 +1,1 @@
+"""Тесты для Samba Web Manager"""
