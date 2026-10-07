@@ -16,7 +16,7 @@ sudo python3 installer_app.py
 
 Мастер проведёт по шагам: проверка системы → выбор компонентов → настройка → установка → готово.
 
-**Время:** 2–5 минут.
+![Установка](docs/samba_install.png)
 
 ---
 
@@ -51,6 +51,7 @@ sudo python3 installer_app.py
 
 Уже установленные компоненты определяются автоматически и пропускаются.
 
+![Компоненты](docs/components_install.png)
 ---
 
 ## 🔧 Параметры
@@ -64,6 +65,7 @@ sudo python3 installer_app.py
 
 Все параметры сохраняются в `/opt/samba-web-manager/.env` с правами `600`.
 
+![Конфигурация](docs/config_install.png)
 ---
 
 ## ♻️ Переустановка
@@ -85,7 +87,7 @@ sudo python3 installer_app.py
 ```bash
 sudo grep ADMIN_PASSWORD /opt/samba-web-manager/.env
 ```
-
+![Завершение установки](docs/finish_install.png)
 ---
 
 ## 🗑️ Удаление
