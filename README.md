@@ -153,6 +153,8 @@ MIT License. Copyright (c) 2026 Development-Day.
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
+![Дашборд](docs/dashboard.png)
+![Мониторинг](docs/monitor.png)
 ---
 
 ## ✨ Возможности
@@ -257,6 +259,8 @@ sudo grep ADMIN_PASSWORD /opt/samba-web-manager/.env
 ```
 
 > 🔐 **Важно:** смените пароль после первого входа.
+
+![Авторизация](docs/login.png)
 
 ### Смена пароля администратора
 
