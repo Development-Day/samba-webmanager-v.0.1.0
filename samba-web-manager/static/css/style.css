@@ -137,10 +137,21 @@ h5 { font-size: 13px; }
     text-shadow: 0 0 10px #00ffff;
 }
 
+/* ============================================================
+   .content — контентная область. Здесь живёт сетка (фон).
+   Применяется на всех страницах.
+   ============================================================ */
 .content {
     flex: 1;
     padding: 25px 30px;
     min-width: 0;
+    background-color: #0a0a0a;
+    background-image:
+        linear-gradient(rgba(0, 255, 255, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 255, 0.06) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-attachment: local;
+    min-height: calc(100vh - 50px);
 }
 
 /* ============ КАРТОЧКИ / ПАНЕЛИ ============ */
@@ -193,6 +204,7 @@ h5 { font-size: 13px; }
     .layout { flex-direction: column; }
     .sidebar { width: 100%; border-right: none; border-bottom: 2px solid #00ffff; }
     .col-md-3, .col-md-4, .col-md-6, .col-md-10 { flex: 1 1 100%; }
+    .content { background-attachment: scroll; }
 }
 
 /* ============ КНОПКИ ============ */
@@ -665,7 +677,7 @@ table tr:last-child td {
     justify-content: center;
     min-height: 100vh;
     background-color: #0a0a0a;
-    background-image: 
+    background-image:
         linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
         linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
     background-size: 40px 40px;
