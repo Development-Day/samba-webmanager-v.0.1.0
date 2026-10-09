@@ -140,7 +140,7 @@ sudo bash check-clean.sh
 
 ## 📜 Лицензия
 
-MIT License. Copyright (c) 2026 Development-Day.
+AGPL-3.0 license. Copyright (c) 2026 Development-Day.
 
 # 🚀 Samba Web Manager
 
@@ -620,7 +620,7 @@ Finder → `Cmd+K` → `smb://192.0.2.10/public`
 
 ## 📝 Лицензия
 
-MIT — используйте свободно. См. [LICENSE](LICENSE).
+AGPL-3.0 license. См. [LICENSE](LICENSE).
 
 ---
 
